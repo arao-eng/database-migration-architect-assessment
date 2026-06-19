@@ -4,7 +4,7 @@ WORKDIR /app
 
 # The Nuclear Option: Copy the ENTIRE PetClinic directory into the container
 # This guarantees the 'src/checkstyle' folder is present when Maven goes looking for it.
-COPY apps/spring-petclinic/* /app/
+COPY apps/spring-petclinic/ /app/
 
 # Run the build with all code-quality linters explicitly disabled
 RUN mvn clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true
