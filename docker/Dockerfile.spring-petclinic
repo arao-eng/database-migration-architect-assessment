@@ -2,7 +2,7 @@
 FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
 
-COPY apps/spring-petclinic/ /app/
+COPY apps/spring-petclinic/* /app/
 RUN mvn clean package -DskipTests -Dspring-javaformat.skip=true
 
 # Stage 2: Production runtime environment
