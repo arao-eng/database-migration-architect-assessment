@@ -26,9 +26,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Maven Build & Unit Tests
-        run: mvn clean package -DskipTests -Dspring-javaformat.skip=true
-
       - name: Build Docker Image
         run: docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} -f docker/Dockerfile.spring-petclinic .
 
