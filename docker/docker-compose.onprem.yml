@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Required environment contract [cite: 63]
+      - SPRING_PROFILES_ACTIVE=mysql
+      - MYSQL_URL=jdbc:mysql://mysql:3306/petclinic?useUnicode=true
+      - MYSQL_USER=petclinic
+      - MYSQL_PASS=petclinic
+      - EXTERNAL_API_URL=http://mock-external-api:9000
+    depends_on:
+      - mysql
+    networks:
+      - onprem-net
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=petclinic
+      - MYSQL_USER=petclinic
+      - MYSQL_PASSWORD=petclinic
+    ports:
+      - "3306:3306"
+    networks:
+      - onprem-net
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    networks:
+      - onprem-net
+
+  mock-external-api:
+    image: wiremock/wiremock:latest
+    ports:
+      - "9000:8080"
+    networks:
+      - onprem-net
+
+networks:
+  onprem-net:
+    driver: bridge

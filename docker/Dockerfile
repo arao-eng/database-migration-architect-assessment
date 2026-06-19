@@ -1,0 +1,15 @@
+# Stage 1: Build the application
+FROM maven:3.8.4-openjdk-17-slim AS build
+WORKDIR /app
+
+COPY apps/spring-petclinic/ /app/
+RUN mvn clean package -DskipTests -Dspring-javaformat.skip=true
+
+# Stage 2: Production runtime environment
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+
+# The environment contract will be injected at runtime
+ENTRYPOINT ["java", "-jar", "app.jar"]

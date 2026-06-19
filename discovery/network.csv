@@ -1,0 +1,6 @@
+Source,Destination IP/FQDN,Port,Protocol,Direction,Frequency,Migration Wave,Firewall Disposition
+Public Internet,app-gateway.petclinic.com,443,HTTPS,Inbound,Continuous,Wave 1,WAF Allow Public Inbound
+App Gateway,Spring PetClinic App,8080,HTTP,Internal,Continuous,Wave 1,VNet Allow Inbound
+Spring PetClinic App,Target Azure DB for MySQL,3306,TCP,Internal,Continuous,Wave 1,Private Endpoint / NSG Allow
+Spring PetClinic App,mock-api.internal,8080,HTTP,Outbound,Intermittent,Wave 1,Egress Allowlist
+Spring PetClinic App,dc.applicationinsights.azure.com,443,HTTPS,Outbound,Continuous,Wave 1,Egress Allowlist

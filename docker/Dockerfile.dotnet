@@ -1,0 +1,38 @@
+# Build Stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+
+# 1. Copy all root-level files (eShopOnWeb.sln, Directory.Packages.props, etc.)
+COPY *.* ./
+
+# 2. Copy ALL project files referenced by the solution to maintain layer caching
+COPY src/Web/*.csproj ./src/Web/
+COPY src/Infrastructure/*.csproj ./src/Infrastructure/
+COPY src/ApplicationCore/*.csproj ./src/ApplicationCore/
+COPY src/BlazorAdmin/*.csproj ./src/BlazorAdmin/
+COPY src/BlazorShared/*.csproj ./src/BlazorShared/
+COPY src/PublicApi/*.csproj ./src/PublicApi/
+
+COPY tests/UnitTests/*.csproj ./tests/UnitTests/
+COPY tests/IntegrationTests/*.csproj ./tests/IntegrationTests/
+COPY tests/FunctionalTests/*.csproj ./tests/FunctionalTests/
+COPY tests/PublicApiIntegrationTests/*.csproj ./tests/PublicApiIntegrationTests/
+
+# 3. Restore the entire solution
+RUN dotnet restore eShopOnWeb.sln
+
+# 4. Copy the rest of the source code and publish
+COPY . .
+WORKDIR /app/src/Web
+RUN dotnet publish -c Release -o /app/out
+
+# Runtime Stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/out ./
+
+# Environment variables will be injected via Azure Key Vault/App Settings in production
+ENV ASPNETCORE_URLS=http://+:80
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "Web.dll"]

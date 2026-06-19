@@ -1,0 +1,13 @@
+%% discovery/inventory-output/dependency_graph.mmd
+graph TD
+    Client([End User / Browser]) -->|HTTP :8080| NGINX[NGINX Reverse Proxy]
+    NGINX -->|HTTP :8080| App[Spring PetClinic Monolith]
+    
+    subgraph On-Premises Simulation
+        App -->|JDBC TCP :3306| DB[(MySQL 8.0 Database)]
+        App -->|HTTP :8080| ExtAPI[Mock External API / WireMock]
+        App -->|HTTP :8080| AppInsights[App Insights Telemetry Sink]
+    end
+
+    classDef database fill:#f9f,stroke:#333,stroke-width:2px;
+    class DB database;

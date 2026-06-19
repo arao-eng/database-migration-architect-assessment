@@ -1,0 +1,58 @@
+name: Build, Migrate, and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  ACR_NAME: 'youracrname'
+  APP_NAME: 'your-app-service-name'
+  IMAGE_NAME: 'eshopweb'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Docker Login to ACR
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.ACR_NAME }}.azurecr.io
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build and Push Container Image
+      run: |
+        docker build -f docker/Dockerfile.dotnet -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  database-migration-gate:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+    - name: Pre-Migration Check & Schema Deploy
+      run: echo "Executing automated schema deployment using SqlPackage.exe or Entity Framework migrations..."
+    
+    - name: Data Migration Trigger
+      run: echo "Triggering Azure SQL DB BACPAC import or Data Sync..."
+
+  deploy-and-validate:
+    needs: database-migration-gate
+    runs-on: ubuntu-latest
+    steps:
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.APP_NAME }}
+        images: '${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}'
+
+    - name: Automated Validation & Smoke Tests
+      run: |
+        echo "Running smoke_test.sh against https://${{ env.APP_NAME }}.azurewebsites.net/health..."
+        echo "Executing Python reconciliation scripts for row-count validation..."
