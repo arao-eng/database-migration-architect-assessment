@@ -7,7 +7,7 @@ on:
 
 # Use environment variables securely injected via GitHub Secrets
 env:
-  ACR_NAME: 'petclinicacr'
+  ACR_NAME: 'petclinicacr12345'
   IMAGE_NAME: 'petclinic-app'
   AZURE_WEBAPP_NAME: 'petclinic-app-service'
   RESOURCE_GROUP: 'rg-petclinic-migration'
