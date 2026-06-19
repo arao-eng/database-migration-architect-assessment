@@ -10,7 +10,7 @@ COPY apps/spring-petclinic/* /app/
 #    echo '<?xml version="1.0"?><!DOCTYPE suppressions PUBLIC "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN" "https://checkstyle.org/dtds/suppressions_1_2.dtd"><suppressions></suppressions>' > src/checkstyle/nohttp-checkstyle-suppressions.xml
 
 # Run the build (now that the file exists, it will happily execute)
-RUN mvn clean package -DskipTests -Dcheckstyle.skip -Dspring-javaformat.skip=true
+RUN mvn clean package -DskipTests -Dspring-javaformat.skip=true -Dcheckstyle.skip=true
 
 # Stage 2: Create the lightweight runtime image
 FROM eclipse-temurin:17-jre-jammy
@@ -22,3 +22,5 @@ EXPOSE 8080
 
 # Start the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+checkstyle.skip
