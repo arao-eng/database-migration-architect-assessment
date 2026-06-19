@@ -5,13 +5,6 @@ WORKDIR /app
 # Copy the application code
 COPY apps/spring-petclinic/* /app/
 
-# THE NUCLEAR BYPASS: Create a fake, perfectly formatted checkstyle XML file to trick the linter
-#RUN mkdir -p src/checkstyle && \
-#    echo '<?xml version="1.0"?><!DOCTYPE suppressions PUBLIC "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN" "https://checkstyle.org/dtds/suppressions_1_2.dtd"><suppressions></suppressions>' > src/checkstyle/nohttp-checkstyle-suppressions.xml
-
-# Run the build (now that the file exists, it will happily execute)
-#RUN mvn clean package -DskipTests -Dspring-javaformat.skip=true -Dcheckstyle.skip=true
-
 RUN mvn clean package -DskipTests \
     -Dspring-javaformat.skip=true \
     -Dcheckstyle.skip=true \
