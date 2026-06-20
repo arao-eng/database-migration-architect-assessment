@@ -51,7 +51,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-	with:
+        with:
           submodules: 'recursive'
 
       - name: Pre-Migration Check
