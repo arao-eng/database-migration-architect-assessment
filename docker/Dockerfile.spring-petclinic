@@ -1,10 +1,16 @@
-# Stage 1: Build the application
 FROM maven:3.9.0-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy the application code
-COPY apps/spring-petclinic/*.* /app/
+# 1. Copy ONLY the pom.xml first
+COPY apps/spring-petclinic/pom.xml /app/
 
+# 2. Download all dependencies and cache this layer
+RUN mvn dependency:go-offline
+
+# 3. Now copy the rest of your actual source code
+COPY apps/spring-petclinic/ /app/
+
+# 4. Run the package command (will be lightning fast now)
 RUN mvn clean package -DskipTests \
     -Dspring-javaformat.skip=true \
     -Dcheckstyle.skip=true 
