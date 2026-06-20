@@ -5,7 +5,7 @@ WORKDIR /app
 COPY apps/spring-petclinic/pom.xml /app/
 
 # 2. Download all dependencies and cache this layer
-RUN mvn dependency:go-offline
+RUN mvn dependency:resolve-plugins dependency:resolve -B
 
 # 3. Now copy the rest of your actual source code
 COPY apps/spring-petclinic/ /app/
