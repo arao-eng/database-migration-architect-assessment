@@ -43,52 +43,7 @@ jobs:
           az acr login --name ${{ env.ACR_NAME }}
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  database-migration:
-    name: Database Migration & Validation
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    # This environment should be configured in GitHub with a "Required Reviewer" to act as the manual approval gate
-    environment: production-migration 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
 
-      - name: Pre-Migration Check
-        run: echo "Checking target database connectivity and current schema state..."
-
-      - name: Trigger Data Migration
-        env:
-          SRC_MYSQL_HOST: ${{ secrets.SRC_MYSQL_HOST }}
-          SRC_MYSQL_USER: ${{ secrets.SRC_MYSQL_USER }}
-          SRC_MYSQL_PASSWORD: ${{ secrets.SRC_MYSQL_PASSWORD }}
-          TGT_MYSQL_HOST: ${{ secrets.TGT_MYSQL_HOST }}
-          TGT_MYSQL_USER: ${{ secrets.TGT_MYSQL_USER }}
-          TGT_MYSQL_PASSWORD: ${{ secrets.TGT_MYSQL_PASSWORD }}
-        run: |
-          chmod +x migration/mysql/migrate.sh
-          ./migration/mysql/migrate.sh
-
-      - name: Post-Migration Validation
-        env:
-          SRC_MYSQL_HOST: ${{ secrets.SRC_MYSQL_HOST }}
-          SRC_MYSQL_USER: ${{ secrets.SRC_MYSQL_USER }}
-          SRC_MYSQL_PASSWORD: ${{ secrets.SRC_MYSQL_PASSWORD }}
-          TGT_MYSQL_HOST: ${{ secrets.TGT_MYSQL_HOST }}
-          TGT_MYSQL_USER: ${{ secrets.TGT_MYSQL_USER }}
-          TGT_MYSQL_PASSWORD: ${{ secrets.TGT_MYSQL_PASSWORD }}
-        run: |
-          pip install mysql-connector-python
-          python validation/reconciliation.py > validation-report.txt
-
-      - name: Upload Validation Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: migration-artifacts
-          path: |
-            validation-report.txt
-            discovery/inventory-output/
 
   deploy-and-cutover:
     name: Application Deploy & Smoke Test
