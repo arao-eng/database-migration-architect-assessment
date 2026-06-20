@@ -45,7 +45,7 @@ jobs:
 
 
 
-deploy-and-cutover:
+  deploy-and-cutover:
     name: Application Deploy & Smoke Test
     needs: build-and-push
     runs-on: ubuntu-latest
