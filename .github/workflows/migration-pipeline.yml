@@ -51,6 +51,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+	with:
+          submodules: 'recursive'
 
       - name: Pre-Migration Check
         run: echo "Checking target database connectivity and current schema state..."
