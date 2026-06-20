@@ -7,8 +7,8 @@ COPY apps/spring-petclinic/*.* /app/
 
 RUN mvn clean package -DskipTests \
     -Dspring-javaformat.skip=true \
-    -Dcheckstyle.skip=true \
-    -Ddisable.checks
+    -Dcheckstyle.skip=true 
+  
 
 # Stage 2: Create the lightweight runtime image
 FROM eclipse-temurin:17-jre-jammy
