@@ -45,7 +45,7 @@ jobs:
 
 
 
-  deploy-and-cutover:
+deploy-and-cutover:
     name: Application Deploy & Smoke Test
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -55,15 +55,22 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure App Service / Container Apps
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Deploy to Azure Container App
+        run: |
+          echo "Updating Container App with new image..."
+          az containerapp update \
+            --name petclinic-app \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Application Smoke Test
         run: |
-          echo "Waiting for app to initialize..."
-          sleep 30
-          curl --fail https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || exit 1
+          echo "Waiting for Container App to pull image and initialize..."
+          sleep 45
+          
+          # Fetch the dynamic FQDN of the Container App
+          APP_URL=$(az containerapp show --name petclinic-app --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+          
+          echo "Testing endpoint: https://$APP_URL"
+          curl --fail https://$APP_URL/ || exit 1
           echo "Smoke test passed. App is routing traffic to the migrated database."
