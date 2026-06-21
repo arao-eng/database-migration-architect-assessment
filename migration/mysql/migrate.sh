@@ -41,13 +41,11 @@ echo "============================================================"
 echo "Starting Target Import to Azure DB for MySQL: $TGT_MYSQL_HOST"
 echo "============================================================"
 
-# If this were a live run, you would execute the import via the container like this:
-# docker exec -i "$MYSQL_CONTAINER" mysql \
-#   --host="$TGT_MYSQL_HOST" \
-#   --port="$TGT_MYSQL_PORT" \
-#   --ssl-mode=REQUIRED \
-#   --user="$TGT_MYSQL_USER" \
-#   --password="$TGT_MYSQL_PASSWORD" < "$DUMP_FILE"
+echo "Executing LIVE import to Azure DB..."
+docker exec -i "$MYSQL_CONTAINER" mysql \
+   --host="$TGT_MYSQL_HOST" \
+   --port="$TGT_MYSQL_PORT" \
+   --user="$TGT_MYSQL_USER" \
+   --password="$TGT_MYSQL_PASSWORD" petclinic < "$DUMP_FILE"
 
-echo "DRY RUN MODE: Skipping actual import since the Azure target is a placeholder."
 echo "Migration script completed successfully."

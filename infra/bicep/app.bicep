@@ -13,7 +13,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
   location: location
   properties: {
     vnetConfiguration: {
-      internal: true // Restricts ingress to the VNet (Requires App Gateway/WAF for public access)
+      internal: false // UPDATED: Allows Public Ingress while remaining attached to the VNet
       infrastructureSubnetId: vnetSubnetId
     }
     workloadProfiles: [

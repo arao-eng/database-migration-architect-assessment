@@ -5,11 +5,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-# Use environment variables securely injected via GitHub Secret
+# Cleaned up environment variables to reflect the new Container Apps architecture
 env:
   ACR_NAME: 'petclinicacr14264'
   IMAGE_NAME: 'petclinic-app'
-  AZURE_WEBAPP_NAME: 'petclinic-app-service'
   RESOURCE_GROUP: 'rg-petclinic-migration'
 
 jobs:
@@ -43,8 +42,6 @@ jobs:
           az acr login --name ${{ env.ACR_NAME }}
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-
-
   deploy-and-cutover:
     name: Application Deploy & Smoke Test
     needs: build-and-push
@@ -56,6 +53,8 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Container App
+        # The 'update' command safely patches the image without overriding 
+        # the custom Public Ingress or ACR auth we configured in the CLI!
         run: |
           echo "Updating Container App with new image..."
           az containerapp update \

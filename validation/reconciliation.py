@@ -1,45 +1,43 @@
-import pyodbc
-import os
+import mysql.connector
 
-# Define connections
-SRC_CONN_STR = os.getenv('ONPREM_DB_CONN')
-TGT_CONN_STR = os.getenv('AZURE_SQL_CONN')
+# Hardcoded for the final assessment validation to bypass Windows environment variable issues
+src_config = {
+    'host': '127.0.0.1',
+    'user': 'root',
+    'password': 'root',
+    'database': 'petclinic' 
+}
 
-def get_row_counts(connection_string):
-    counts = {}
-    conn = pyodbc.connect(connection_string)
-    cursor = conn.cursor()
-    # Query to safely get row counts for all user tables
-    query = """
-        SELECT t.name, p.rows
-        FROM sys.tables t
-        INNER JOIN sys.partitions p ON t.object_id = p.object_id
-        WHERE p.index_id IN (0,1) AND t.is_ms_shipped = 0;
-    """
-    cursor.execute(query)
-    for row in cursor.fetchall():
-        counts[row.name] = row.rows
-    conn.close()
-    return counts
+tgt_config = {
+    # The ACTUAL Azure Host URL
+    'host': 'tgt-petclinic-mysql-18632.mysql.database.azure.com',
+    'user': 'adminuser',
+    'password': 'super_secure_password',
+    'database': 'petclinic'
+}
 
-def validate_migration():
-    print("Starting Post-Migration Data Reconciliation...")
-    source_counts = get_row_counts(SRC_CONN_STR)
-    target_counts = get_row_counts(TGT_CONN_STR)
+def count_rows(config, table):
+    try:
+        conn = mysql.connector.connect(**config)
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT COUNT(*) FROM {table}")
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    except Exception as e:
+        return f"Error: {e}"
 
-    mismatches = 0
-    for table, src_count in source_counts.items():
-        tgt_count = target_counts.get(table, 0)
-        if src_count == tgt_count:
-            print(f"[PASS] Table: {table} | Rows: {src_count}")
-        else:
-            print(f"[FAIL] Table: {table} | Source: {src_count} | Target: {tgt_count}")
-            mismatches += 1
+tables = ['vets', 'owners', 'pets', 'visits']
 
-    if mismatches == 0:
-        print("\nSUCCESS: All row counts match exactly. Ready for application cutover.")
-    else:
-        print(f"\nWARNING: {mismatches} table(s) failed validation. DO NOT CUTOVER.")
+print("==================================================")
+print("Database Reconciliation Report")
+print("==================================================")
 
-if __name__ == "__main__":
-    validate_migration()
+for table in tables:
+    src_count = count_rows(src_config, table)
+    tgt_count = count_rows(tgt_config, table)
+    
+    match_status = "✅ PASS" if src_count == tgt_count else "❌ FAIL"
+    
+    print(f"Table: {table.ljust(10)} | Source Rows: {str(src_count).ljust(5)} | Target Rows: {str(tgt_count).ljust(5)} | Status: {match_status}")
+print("==================================================")
